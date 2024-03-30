@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather briefing</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        td, th {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+        }
+        thead th {
+            background-color: #f2f2f2;
+            position: sticky; /* This tells the browser to "stick" the element at a position when scrolling */
+            top: 0;           /* This is the distance from the top where the sticky element will "stick" */
+            z-index: 10;      /* Ensures that the header will stay above other content when scrolling */
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px; /* Spacing between tables */
+        }
+
+
+        /* Add a box shadow to the sticky header for better visual separation */
+        th {
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Make sure the rest of the table below the header scrolls underneath and not over the header */
+        tbody tr {
+            position: relative;
+
+        }
+        /* Style for location headers */
+        .location-header {
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        .wind-arrow {
+            display: inline-block;
+            transform-origin: center;
+            font-size: 1.2em; /* Adjust the size as needed to fit within the cell */
+            margin: 0 auto; /* Center arrow inside the cell */
+        }
+        .normal-weather {
+        }
+        .warning-weather {
+            color: #8B8000;
+        }
+        .danger-weather {
+            color: red;
+        }
+        td.wind-cell {
+            overflow: hidden; /* Hide any content that overflows the cell's box */
+            text-align: center; /* Center the content horizontally */
+            position: relative;
+        }
+        .runway {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            width: 20px;
+            height: 100%; /* adjust as needed */
+            background: black;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body>
+<h1>Weather briefing</h1>
+{% for location, forecasts in forecast_data.items() %}
+<div class="location-header">{{ location }}</div>
+<table>
+    <thead>
+    <tr>
+        <th>Time</th>
+        <th>Temperature (°C)</th>
+        <th>Humidity (%)</th>
+        <th>Dew point (°C)</th>
+        <th>QNH (hPa)</th>
+        <th>Calc. cloud base (ft)</th>
+        <th>Clouds below FL80</th>
+        <th>Visibility (m)</th>
+        <th>Wind</th>
+        <th>Precipitation</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for forecast in forecasts %}
+    <tr>
+        <td>{{ forecast.validTime }}</td>
+        <td>{{ forecast.temperature }}</td>
+        <td>{{ forecast.humidity }}</td>
+        <td>{{ forecast.dewPoint }}</td>
+        <td>{{ forecast.qnh }}</td>
+        <td>
+            <span class="{{ 'danger-weather' if forecast.cloudBase < 1000 else ('warning-weather' if forecast.cloudBase < 1500 else 'normal-weather') }}">
+            {{ forecast.cloudBase }}
+            </span>
+        </td>
+        <td>{{ forecast.clouds }}</td>
+        <td>
+            <span class="{{ 'danger-weather' if forecast.visibility_meters < 3000 else ('warning-weather' if forecast.visibility_meters < 5000 else 'normal-weather') }}">
+            {{ forecast.visibility_meters }}
+            </span>
+        </td>
+        <td class="wind-cell">
+            <span class="wind-arrow" style="display:block; transform: rotate({{ forecast.wind_direction }}deg);">&#x2193;</span>
+            {{ forecast.wind_direction }}° {{ forecast.wind_speed_knots }} kt
+            <br/>(gust {{ forecast.wind_gust_knots }} kt)
+            {% for runway in forecast.runways %}
+            <div class="runway" style="transform: rotate({{ runway }}deg);"></div>
+            {% endfor %}
+        </td>
+        <td>
+            {{ forecast.pcat }}
+            {% if forecast.pcat != "None" %}
+            : {{ forecast.pmin }}-{{ forecast.pmax }}mm,
+            <br/>mean: {{ forecast.pmean }}
+            <br/>median: {{ forecast.pmedian }}
+            <br/><span class="{{ 'danger-weather' if forecast.spp > 0 else 'normal-weather' }}">
+            {{ forecast.spp }}% FZ</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+
+<h2>METAR / TAF</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Location</th>
+        <th>METAR</th>
+        <th>TAF</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for location in forecast_data.keys() %}
+    {% if location in metar or location in taf %}
+    <tr>
+        <td>{{ location }}</td>
+        <td>{{ metar.get(location, '') }}</td>
+        <td>{{ taf.get(location, '') }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+</table>
+
+<div>
+    <img src="https://aro.lfv.se/tor/nswc2aro.gif"/>
+</div>
+
+</body>
+</html>
