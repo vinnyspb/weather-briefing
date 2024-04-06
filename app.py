@@ -25,6 +25,8 @@ LOCATIONS = {
     'ESSA': {'lon': 17.916, 'lat': 59.652, 'runways': [190, 260]},  # Arlanda
     'GIMO': {'lon': 18.097, 'lat': 60.102, 'runways': [50]},  # GIMO/Lunda
     'Frölunda': {'lon': 17.708, 'lat': 59.456, 'runways': [160]},  # Frölunda
+    'ESOW': {'lon': 16.634, 'lat': 59.59, 'runways': [10]},  # Västerås
+    'ESSX': {'lon': 16.502, 'lat': 59.578, 'runways': [50]},  # Johannisberg
 }
 
 
